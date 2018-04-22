@@ -45,7 +45,8 @@ General options:
       --help=variables     list environment variables, then exit
 
 Commands:
-  quick                    send the JSON output of pgmetrics from stdin to pgdash.io
+  quick                    send pgmetrics report to pgdash.io for quick view
+  report SERVERNAME        send report for server SERVERNAME
 
 For more information, visit <https://pgdash.io>.
 `
@@ -72,12 +73,19 @@ type options struct {
 	version    bool
 	help       string
 	helpShort  bool
+	baseURL    string
 }
 
 func (o *options) defaults() {
 	// general
 	o.timeoutSec = 60
 	o.retries = 5
+	o.input = ""
+	o.apiKey = ""
+	o.version = false
+	o.help = ""
+	o.helpShort = false
+	o.baseURL = baseURL
 }
 
 func (o *options) usage(code int) {
@@ -109,6 +117,7 @@ func (o *options) parse() (args []string) {
 	s.StringVarLong(&o.apiKey, "api-key", 'a', "")
 	help := s.StringVarLong(&o.help, "help", '?', "").SetOptional()
 	s.BoolVarLong(&o.version, "version", 'V', "").SetFlag()
+	s.StringVarLong(&o.baseURL, "base-url", 0, "")
 
 	// parse
 	s.Parse(os.Args)
@@ -154,7 +163,7 @@ func (o *options) parse() (args []string) {
 		os.Exit(2)
 	}
 	command := args[0]
-	if command != "quick" {
+	if command != "quick" && command != "report" {
 		fmt.Fprintf(os.Stderr, "unknown command '%s'\n", command)
 		printTry()
 		os.Exit(2)
@@ -164,6 +173,23 @@ func (o *options) parse() (args []string) {
 }
 
 func cmdQuick(o options, args []string) {
+	// call the api
+	resp, err := client.Quick(api.ReqQuick{
+		Data: *getReport(o),
+	})
+	if err != nil {
+		log.Fatalf("API request failed: %v", err)
+	}
+
+	// print out the result
+	fmt.Printf(`Upload successful.
+
+Quick View URL: %s
+Admin Code:     %s
+`, resp.URL, resp.Code)
+}
+
+func getReport(o options) *pgmetrics.Model {
 	// read input file
 	var data []byte
 	var err error
@@ -183,29 +209,56 @@ func cmdQuick(o options, args []string) {
 	}
 
 	// validate the data a bit
-	if model.Metadata.Version != "1.0" { // we currently know only about this version
+	ver := model.Metadata.Version
+	if ver != "1.0" && ver != "1.1" { // we currently know only about this version
 		log.Fatalf("invalid input: bad schema version '%s' in pgmetrics json",
-			model.Metadata.Version)
+			ver)
 	}
 	at := time.Unix(model.Metadata.At, 0)
 	if at.Year() < 2018 || at.Year() > 2020 {
 		log.Fatal("invalid input: bad collection timestamp in pgmetrics json")
 	}
 
+	return &model
+}
+
+func cmdReport(o options, args []string) {
+	// check API key
+	if len(o.apiKey) == 0 {
+		log.Fatal("API key must be specified using the '-a' option for reporting.")
+	}
+	if !api.RxAPIKey.MatchString(o.apiKey) {
+		log.Fatalf("invalid API key format '%s'", o.apiKey)
+	}
+
+	// check server
+	if len(args) == 0 {
+		log.Fatal("Server name needs to be specified, try --help for help.")
+	}
+	if len(args) != 1 {
+		log.Fatal("invalid syntax for report command, try --help for help.")
+	}
+	if !api.RxServer.MatchString(args[0]) {
+		log.Fatal(`bad server name, must be 1-64 chars A-Z, a-z, 0-9, "-", "_", and ".".`)
+	}
+
 	// call the api
-	resp, err := client.Quick(api.ReqQuick{
-		Data: model,
+	_, err := client.Report(api.ReqReport{
+		APIKey: o.apiKey,
+		Server: args[0],
+		Data:   *getReport(o),
 	})
+	if errh, ok := err.(*api.RestV1ClientError); ok {
+		if errh.Code() == 400 {
+			log.Fatal("invalid API key")
+		}
+		if errh.Code() == 500 {
+			log.Fatal("internal server error")
+		}
+	}
 	if err != nil {
 		log.Fatalf("API request failed: %v", err)
 	}
-
-	// print out the result
-	fmt.Printf(`Upload successful.
-
-Quick View URL: %s
-Admin Code:     %s
-`, resp.URL, resp.Code)
 }
 
 func main() {
@@ -219,10 +272,12 @@ func main() {
 
 	// create the client
 	tout := time.Duration(o.timeoutSec) * time.Second
-	client = api.NewRestV1Client(baseURL, tout, int(o.retries))
+	client = api.NewRestV1Client(o.baseURL, tout, int(o.retries))
 
 	switch command {
 	case "quick":
 		cmdQuick(o, args[1:])
+	case "report":
+		cmdReport(o, args[1:])
 	}
 }

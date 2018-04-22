@@ -19,6 +19,29 @@ type RestV1Client struct {
 	retries int
 }
 
+// RestV1ClientError represents errors because of non-2xx HTTP response code.
+type RestV1ClientError struct {
+	code int
+	msg  string
+}
+
+func newRestV1ClientError(code int) *RestV1ClientError {
+	return &RestV1ClientError{
+		code: code,
+		msg:  fmt.Sprintf("server returned HTTP error code %d", code),
+	}
+}
+
+// Code returns the HTTP response status code.
+func (e *RestV1ClientError) Code() int {
+	return e.code
+}
+
+// Error returns a human-readable error message.
+func (e *RestV1ClientError) Error() string {
+	return e.msg
+}
+
 // NewRestV1Client creates a new client to talk to the specified base URL
 // and with the given timeout.
 func NewRestV1Client(base string, timeout time.Duration, retries int) *RestV1Client {
@@ -48,13 +71,13 @@ func (c *RestV1Client) callOnce(path string, req interface{}, resp interface{}) 
 		return
 	}
 	if r.StatusCode/100 == 5 {
-		err = fmt.Errorf("server error: %s", r.Status)
+		err = newRestV1ClientError(r.StatusCode)
 		retry = true
 		wait = true
 		return
 	}
 	if r.StatusCode/100 != 2 {
-		err = fmt.Errorf("client error: %s", r.Status)
+		err = newRestV1ClientError(r.StatusCode)
 		return
 	}
 	if r.Body == nil {
@@ -92,5 +115,11 @@ func (c *RestV1Client) call(path string, req interface{}, resp interface{}) erro
 // Quick calls RestV1.Quick
 func (c *RestV1Client) Quick(req ReqQuick) (resp RespQuick, err error) {
 	err = c.call("quick", req, &resp)
+	return
+}
+
+// Report calls RestV1.Report
+func (c *RestV1Client) Report(req ReqReport) (resp RespReport, err error) {
+	err = c.call("report", req, &resp)
 	return
 }

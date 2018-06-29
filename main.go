@@ -22,6 +22,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/rapidloop/pgdash/api"
@@ -210,7 +211,7 @@ func getReport(o options) *pgmetrics.Model {
 
 	// validate the data a bit
 	ver := model.Metadata.Version
-	if ver != "1.0" && ver != "1.1" { // we currently know only about this version
+	if !strings.HasPrefix(ver, "1.") { // we currently know only about major version 1
 		log.Fatalf("invalid input: bad schema version '%s' in pgmetrics json",
 			ver)
 	}

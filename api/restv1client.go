@@ -4,6 +4,7 @@ package api
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -59,12 +60,25 @@ func NewRestV1Client(base string, timeout time.Duration, retries int) *RestV1Cli
 }
 
 func (c *RestV1Client) callOnce(path string, req interface{}, resp interface{}) (retry, wait bool, err error) {
-	data, err := json.Marshal(req)
+
+	// json-encode and gzip-compress the request body
+	reqBody := &bytes.Buffer{}
+	gzw := gzip.NewWriter(reqBody)
+	if err = json.NewEncoder(gzw).Encode(req); err != nil {
+		return
+	}
+	gzw.Close()
+
+	// make HTTP request object
+	hr, err := http.NewRequest("POST", c.base+path, reqBody)
 	if err != nil {
 		return
 	}
+	hr.Header.Set("Content-Type", "application/json")
+	hr.Header.Set("Content-Encoding", "gzip")
 
-	r, err := c.client.Post(c.base+path, "application/json", bytes.NewReader(data))
+	// perform HTTP request
+	r, err := c.client.Do(hr)
 	if err != nil {
 		retry = true
 		wait = !strings.Contains(strings.ToLower(err.Error()), "timeout")

@@ -126,6 +126,13 @@ func (o *options) parse() (args []string) {
 		o.help = "short"
 	}
 
+	// check environment variables
+	if o.apiKey == "" {
+		if v := os.Getenv("PDAPIKEY"); v != "" {
+			o.apiKey = v
+		}
+	}
+
 	// check values
 	if o.help != "" && o.help != "short" && o.help != "variables" {
 		printTry()

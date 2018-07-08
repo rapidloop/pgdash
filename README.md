@@ -3,14 +3,13 @@
 [pgdash.io](https://pgdash.io).
 
 It can upload the metrics collected by [pgmetrics](https://pgmetrics.io) into
-pgdash for quick viewing:
+pgdash:
 
 ```
-$ pgmetrics -f json --no-password mydb | pgdash quick
-Upload successful.
+$ pgmetrics -f json --no-password mydb | pgdash -a APIKEY report myserver
 
-Quick View URL: https://app.pgdash.io/quick/qzH033y1JuX3R6LbZiHfY6
-Admin Code:     10311
+$ pgmetrics -f json -o report.json mydb
+$ pgdash -a APIKEY -i report.json report myserver
 ```
 
 For more information, see [pgdash.io](https://pgdash.io) and

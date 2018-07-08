@@ -39,14 +39,14 @@ Usage:
 General options:
       --timeout=SECS       individual operation timeout in seconds (default: 60)
       --retries=COUNT      retry these many times on network or server errors (default: 5)
-  -i, --input=FILE         the input JSON file for "quick" command
+  -i, --input=FILE         read from this JSON file instead of stdin
   -a, --api-key=APIKEY     the API key for your pgdash account
   -V, --version            output version information, then exit
   -?, --help[=options]     show this help, then exit
       --help=variables     list environment variables, then exit
 
 Commands:
-  quick                    send pgmetrics report to pgdash.io for quick view
+  quick                    send report to pgdash.io for quick view
   report SERVERNAME        send report for server SERVERNAME
 
 For more information, visit <https://pgdash.io>.
@@ -251,7 +251,7 @@ func cmdReport(o options, args []string) {
 	})
 	if errh, ok := err.(*api.RestV1ClientError); ok {
 		if errh.Code() == 400 {
-			log.Fatal("invalid API key")
+			log.Fatal("invalid API key or account limit reached")
 		}
 		if errh.Code() == 500 {
 			log.Fatal("internal server error")

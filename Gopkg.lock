@@ -10,8 +10,8 @@
 [[projects]]
   name = "github.com/rapidloop/pgmetrics"
   packages = ["."]
-  revision = "957d6f1e768db1a3c3c8e83af6a365f4cb6b8e53"
-  version = "v1.1.0"
+  revision = "fdf7905a253c6c160bd081380e0dd9a6d236375c"
+  version = "v1.3.0"
 
 [solve-meta]
   analyzer-name = "dep"

@@ -3,19 +3,26 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:b5fb39406457e4a78f9b50e24e0f149145789ac7805ad88109c4640bd7b2e541"
   name = "github.com/pborman/getopt"
   packages = ["."]
-  revision = "7148bc3a4c3008adfcab60cbebfd0576018f330b"
+  pruneopts = "UT"
+  revision = "2b5b3bfb099b7da3e2f433966f8ab1d5803e0876"
 
 [[projects]]
+  digest = "1:0ca8bd8ca157399e35ed6fe2d692bf893ae162c562354b91f9efa9f019fc8284"
   name = "github.com/rapidloop/pgmetrics"
   packages = ["."]
-  revision = "fdf7905a253c6c160bd081380e0dd9a6d236375c"
-  version = "v1.3.0"
+  pruneopts = "UT"
+  revision = "61f05fced6569e25ed4bdca6be26638b7ac10d2e"
+  version = "v1.4.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "b4d3c05ec3dfa60a03c56bebb86570a339acf4f4163d9d278607399e9d8065f2"
+  input-imports = [
+    "github.com/pborman/getopt",
+    "github.com/rapidloop/pgmetrics",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1

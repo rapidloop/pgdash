@@ -10,12 +10,12 @@
   revision = "2b5b3bfb099b7da3e2f433966f8ab1d5803e0876"
 
 [[projects]]
-  digest = "1:0ca8bd8ca157399e35ed6fe2d692bf893ae162c562354b91f9efa9f019fc8284"
+  digest = "1:cca8077ff1676299e564a90bcc2836fcee09e6bb4eeb3d83e3be5e4918a9d05e"
   name = "github.com/rapidloop/pgmetrics"
   packages = ["."]
   pruneopts = "UT"
-  revision = "61f05fced6569e25ed4bdca6be26638b7ac10d2e"
-  version = "v1.4.0"
+  revision = "e526c836ac9eb2928e65637bcc643b4b4532ebc2"
+  version = "v1.5.1"
 
 [solve-meta]
   analyzer-name = "dep"

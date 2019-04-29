@@ -42,6 +42,7 @@ General options:
   -i, --input=FILE         read from this JSON file instead of stdin
   -a, --api-key=APIKEY     the API key for your pgdash account
   -V, --version            output version information, then exit
+      --debug              output debugging information
   -?, --help[=options]     show this help, then exit
       --help=variables     list environment variables, then exit
 
@@ -75,6 +76,7 @@ type options struct {
 	help       string
 	helpShort  bool
 	baseURL    string
+	debug      bool
 }
 
 func (o *options) defaults() {
@@ -87,6 +89,7 @@ func (o *options) defaults() {
 	o.help = ""
 	o.helpShort = false
 	o.baseURL = baseURL
+	o.debug = false
 }
 
 func (o *options) usage(code int) {
@@ -119,6 +122,7 @@ func (o *options) parse() (args []string) {
 	help := s.StringVarLong(&o.help, "help", '?', "").SetOptional()
 	s.BoolVarLong(&o.version, "version", 'V', "").SetFlag()
 	s.StringVarLong(&o.baseURL, "base-url", 0, "")
+	s.BoolVarLong(&o.debug, "debug", 0, "").SetFlag()
 
 	// parse
 	s.Parse(os.Args)
@@ -209,11 +213,17 @@ func getReport(o options) *pgmetrics.Model {
 	if err != nil {
 		log.Fatalf("failed to read input: %v", err)
 	}
+	if o.debug {
+		log.Printf("read input: %d bytes", len(data))
+	}
 
 	// unmarshal json
 	var model pgmetrics.Model
 	if err := json.Unmarshal(data, &model); err != nil {
 		log.Fatalf("invalid input: %v", err)
+	}
+	if o.debug {
+		log.Print("decoded input JSON successfully")
 	}
 
 	// validate the data a bit
@@ -275,12 +285,17 @@ func main() {
 	args := o.parse()
 	command := args[0]
 
-	log.SetFlags(0)
 	log.SetPrefix("pgdash: ")
+	if o.debug {
+		log.SetFlags(log.LstdFlags | log.Lmicroseconds)
+	} else {
+		log.SetFlags(0)
+	}
 
 	// create the client
 	tout := time.Duration(o.timeoutSec) * time.Second
 	client = api.NewRestV1Client(o.baseURL, tout, int(o.retries))
+	client.SetDebug(o.debug)
 
 	switch command {
 	case "quick":

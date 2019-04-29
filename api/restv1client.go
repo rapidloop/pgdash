@@ -9,6 +9,8 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -19,6 +21,7 @@ type RestV1Client struct {
 	base    string
 	client  *http.Client
 	retries int
+	debug   bool
 }
 
 // RestV1ClientError represents errors because of non-2xx HTTP response code.
@@ -51,16 +54,48 @@ func NewRestV1Client(base string, timeout time.Duration, retries int) *RestV1Cli
 		base += "/"
 	}
 
+	dialer := &net.Dialer{
+		Timeout:   timeout,
+		KeepAlive: 3 * time.Minute,
+	}
+
+	dial := func(network, address string) (net.Conn, error) {
+		c, err := dialer.Dial(network, address)
+		if err != nil {
+			return c, err
+		}
+		if tc, ok := c.(*net.TCPConn); ok {
+			tc.SetKeepAlive(true)
+			tc.SetKeepAlivePeriod(3 * time.Minute)
+		}
+		return c, err
+	}
+
 	return &RestV1Client{
 		base: base,
 		client: &http.Client{
 			Timeout: timeout,
+			Transport: &http.Transport{
+				Dial: dial,
+			},
 		},
 		retries: retries,
 	}
 }
 
+// SetDebug enables/disables debug output.
+func (c *RestV1Client) SetDebug(b bool) {
+	c.debug = b
+}
+
+func (c *RestV1Client) dlog(f string, args ...interface{}) {
+	if c.debug {
+		log.Printf(f, args...)
+	}
+}
+
 func (c *RestV1Client) callOnce(path string, req interface{}, resp interface{}) (retry, wait bool, err error) {
+	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
 
 	// json-encode and gzip-compress the request body
 	reqBody := &bytes.Buffer{}
@@ -69,6 +104,7 @@ func (c *RestV1Client) callOnce(path string, req interface{}, resp interface{}) 
 		return
 	}
 	gzw.Close()
+	c.dlog("compressed input to %d bytes", reqBody.Len())
 
 	// make HTTP request object
 	hr, err := http.NewRequest("POST", c.base+path, reqBody)
@@ -77,9 +113,18 @@ func (c *RestV1Client) callOnce(path string, req interface{}, resp interface{}) 
 	}
 	hr.Header.Set("Content-Type", "application/json")
 	hr.Header.Set("Content-Encoding", "gzip")
+	hr.Close = true
 
 	// perform HTTP request
+	c.dlog("starting HTTP POST")
 	r, err := c.client.Do(hr)
+	c.dlog("client done, err=%v, response=%v", err, r != nil)
+	if r == nil && strings.HasSuffix(err.Error(), "EOF") {
+		// this case needs to be handled better
+		c.dlog("HTTP client returned EOF")
+		err = nil
+		return
+	}
 	if err != nil {
 		retry = true
 		wait = !strings.Contains(strings.ToLower(err.Error()), "timeout")
@@ -106,6 +151,7 @@ func (c *RestV1Client) callOnce(path string, req interface{}, resp interface{}) 
 	}
 	defer r.Body.Close()
 	body, err := ioutil.ReadAll(r.Body)
+	c.dlog("read body: err=%v, len=%d", err, len(body))
 	if err != nil {
 		return
 	}

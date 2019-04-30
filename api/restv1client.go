@@ -172,6 +172,7 @@ func (c *RestV1Client) call(path string, req interface{}, resp interface{}) erro
 			return err
 		}
 		if wait {
+			c.dlog("waiting for %v before retrying", c.client.Timeout)
 			time.Sleep(c.client.Timeout)
 		}
 	}

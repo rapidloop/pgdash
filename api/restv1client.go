@@ -179,12 +179,6 @@ func (c *RestV1Client) call(path string, req interface{}, resp interface{}) erro
 	return last
 }
 
-// Quick calls RestV1.Quick
-func (c *RestV1Client) Quick(req ReqQuick) (resp RespQuick, err error) {
-	err = c.call("quick", req, &resp)
-	return
-}
-
 // Report calls RestV1.Report
 func (c *RestV1Client) Report(req ReqReport) (resp RespReport, err error) {
 	err = c.call("report", req, &resp)

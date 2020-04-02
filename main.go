@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 RapidLoop, Inc.
+ * Copyright 2020 RapidLoop, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,6 @@ General options:
       --help=variables     list environment variables, then exit
 
 Commands:
-  quick                    send report to pgdash.io for quick view
   report SERVERNAME        send report for server SERVERNAME
 
 For more information, visit <https://pgdash.io>.
@@ -175,30 +174,13 @@ func (o *options) parse() (args []string) {
 		os.Exit(2)
 	}
 	command := args[0]
-	if command != "quick" && command != "report" {
+	if command != "report" {
 		fmt.Fprintf(os.Stderr, "unknown command '%s'\n", command)
 		printTry()
 		os.Exit(2)
 	}
 
 	return args
-}
-
-func cmdQuick(o options, args []string) {
-	// call the api
-	resp, err := client.Quick(api.ReqQuick{
-		Data: *getReport(o),
-	})
-	if err != nil {
-		log.Fatalf("API request failed: %v", err)
-	}
-
-	// print out the result
-	fmt.Printf(`Upload successful.
-
-Quick View URL: %s
-Admin Code:     %s
-`, resp.URL, resp.Code)
 }
 
 func getReport(o options) *pgmetrics.Model {
@@ -298,8 +280,6 @@ func main() {
 	client.SetDebug(o.debug)
 
 	switch command {
-	case "quick":
-		cmdQuick(o, args[1:])
 	case "report":
 		cmdReport(o, args[1:])
 	}

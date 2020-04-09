@@ -219,6 +219,17 @@ func getReport(o options) *pgmetrics.Model {
 		log.Fatal("invalid input: bad collection timestamp in pgmetrics json")
 	}
 
+	// append our user agent info into the model
+	if len(model.Metadata.UserAgent) > 0 {
+		model.Metadata.UserAgent += " "
+	}
+	model.Metadata.UserAgent += "pgdash/"
+	if len(version) > 0 {
+		model.Metadata.UserAgent += version
+	} else {
+		model.Metadata.UserAgent += "devel"
+	}
+
 	return &model
 }
 

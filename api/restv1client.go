@@ -71,13 +71,14 @@ func NewRestV1Client(base string, timeout time.Duration, retries int) *RestV1Cli
 		return c, err
 	}
 
+	tr := http.DefaultTransport.(*http.Transport).Clone()
+	tr.Dial = dial
+
 	return &RestV1Client{
 		base: base,
 		client: &http.Client{
-			Timeout: timeout,
-			Transport: &http.Transport{
-				Dial: dial,
-			},
+			Timeout:   timeout,
+			Transport: tr,
 		},
 		retries: retries,
 	}

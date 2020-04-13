@@ -43,7 +43,7 @@ General options:
   -a, --api-key=APIKEY     the API key for your pgdash account
   -V, --version            output version information, then exit
       --debug              output debugging information
-  -?, --help[=options]     show this help, then exit
+  -h, --help[=options]     show this help, then exit
       --help=variables     list environment variables, then exit
 
 Commands:
@@ -118,7 +118,7 @@ func (o *options) parse() (args []string) {
 	s.UintVarLong(&o.retries, "retries", 0, "")
 	s.StringVarLong(&o.input, "input", 'i', "")
 	s.StringVarLong(&o.apiKey, "api-key", 'a', "")
-	help := s.StringVarLong(&o.help, "help", '?', "").SetOptional()
+	help := s.StringVarLong(&o.help, "help", 'h', "").SetOptional()
 	s.BoolVarLong(&o.version, "version", 'V', "").SetFlag()
 	s.StringVarLong(&o.baseURL, "base-url", 0, "")
 	s.BoolVarLong(&o.debug, "debug", 0, "").SetFlag()

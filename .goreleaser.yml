@@ -6,6 +6,10 @@ builds:
       - linux
     goarch:
       - amd64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{.Version}} -extldflags "-static"
     env:
       - CGO_ENABLED=0
 archive:

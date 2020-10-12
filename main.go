@@ -183,6 +183,8 @@ func (o *options) parse() (args []string) {
 	return args
 }
 
+const sixMonths = time.Duration(180 * 24 * time.Hour)
+
 func getReport(o options) *pgmetrics.Model {
 	// read input file
 	var data []byte
@@ -215,8 +217,9 @@ func getReport(o options) *pgmetrics.Model {
 			ver)
 	}
 	at := time.Unix(model.Metadata.At, 0)
-	if at.Year() < 2018 || at.Year() > 2020 {
-		log.Fatal("invalid input: bad collection timestamp in pgmetrics json")
+	now := time.Now()
+	if at.Before(now.Add(-sixMonths)) || at.After(now.Add(sixMonths)) {
+		log.Fatalf("invalid input: bad collection timestamp in pgmetrics json: %v", at)
 	}
 
 	// append our user agent info into the model

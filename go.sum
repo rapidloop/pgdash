@@ -9,8 +9,8 @@ github.com/pborman/getopt v0.0.0-20180811024354-2b5b3bfb099b h1:K1wa7ads2Bu1PavI
 github.com/pborman/getopt v0.0.0-20180811024354-2b5b3bfb099b/go.mod h1:85jBQOZwpVEaDAr341tbn15RS4fCAsIst0qp7i8ex1o=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/rapidloop/pgmetrics v1.9.0 h1:fvyaGOzOOMt9n0EJLC4H5Y8kQJF72CBh7eot/CrZ8Y4=
-github.com/rapidloop/pgmetrics v1.9.0/go.mod h1:gYj4im8OAHmY5yd+2pM/ITQHrEvWzhXv1ydLGs1NX8A=
+github.com/rapidloop/pgmetrics v1.10.1 h1:cszzl9TqTSS3tNJ4WrXMeKhbYtkmIzgIK96XmFbRyRA=
+github.com/rapidloop/pgmetrics v1.10.1/go.mod h1:gYj4im8OAHmY5yd+2pM/ITQHrEvWzhXv1ydLGs1NX8A=
 github.com/rapidloop/pq v1.0.1-0.20190218105255-66681b501d6d/go.mod h1:KCIg3rAcDl7ELp5s30z4lIp1xaOujoaMXnlYKhHECFo=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=

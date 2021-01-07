@@ -35,3 +35,14 @@ type ReqReport struct {
 // RespReport is the response structure for RestV1.Report.
 type RespReport struct {
 }
+
+//------------------------------------------------------------------------------
+// RestV1.ReportPgBouncer
+
+// ReqReportPgBouncer is the request structure for RestV1.ReportPgBouncer.
+type ReqReportPgBouncer struct {
+	APIKey    string          `json:"apikey"`
+	Server    string          `json:"server"`
+	PgBouncer string          `json:"pgbouncer"`
+	Data      pgmetrics.Model `json:"data"`
+}

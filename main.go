@@ -31,7 +31,7 @@ import (
 	"github.com/pborman/getopt"
 )
 
-const usage = `pgdash is a command-line tool for talking to https://pgdash.io/.
+const usage = `pgdash is a command-line tool for talking to the pgDash application.
 
 Usage:
   pgdash [OPTION]... COMMAND [ARGS]...
@@ -48,6 +48,9 @@ General options:
 
 Commands:
   report SERVERNAME        send report for server SERVERNAME
+  report-pgbouncer SERVERNAME PGBOUNCERNAME
+                           send PgBouncer report for PgBouncer instance PGBOUNCERNAME
+                               fronting server SERVERNAME
 
 For more information, visit <https://pgdash.io>.
 `
@@ -97,7 +100,7 @@ func (o *options) usage(code int) {
 		fp = os.Stderr
 	}
 	if o.helpShort || code != 0 || o.help == "short" {
-		fmt.Fprintf(fp, usage)
+		fmt.Fprint(fp, usage)
 	} else if o.help == "variables" {
 		fmt.Fprint(fp, variables)
 	}
@@ -105,7 +108,7 @@ func (o *options) usage(code int) {
 }
 
 func printTry() {
-	fmt.Fprintf(os.Stderr, "Try \"pgdash --help\" for more information.\n")
+	fmt.Fprint(os.Stderr, "Try \"pgdash --help\" for more information.\n")
 }
 
 func (o *options) parse() (args []string) {
@@ -174,7 +177,7 @@ func (o *options) parse() (args []string) {
 		os.Exit(2)
 	}
 	command := args[0]
-	if command != "report" {
+	if command != "report" && command != "report-pgbouncer" {
 		fmt.Fprintf(os.Stderr, "unknown command '%s'\n", command)
 		printTry()
 		os.Exit(2)
@@ -236,14 +239,18 @@ func getReport(o options) *pgmetrics.Model {
 	return &model
 }
 
-func cmdReport(o options, args []string) {
-	// check API key
+func checkAPIKey(o options) {
 	if len(o.apiKey) == 0 {
 		log.Fatal("API key must be specified using the '-a' option for reporting.")
 	}
 	if !api.RxAPIKey.MatchString(o.apiKey) {
 		log.Fatalf("invalid API key format '%s'", o.apiKey)
 	}
+}
+
+func cmdReport(o options, args []string) {
+	// check API key
+	checkAPIKey(o)
 
 	// check server
 	if len(args) == 0 {
@@ -256,15 +263,62 @@ func cmdReport(o options, args []string) {
 		log.Fatal(`bad server name, must be 1-64 chars A-Z, a-z, 0-9, "-", "_", and ".".`)
 	}
 
+	// check the model (must not have pgbouncer info)
+	model := getReport(o)
+	if model.PgBouncer != nil {
+		log.Fatal("use report-pgbouncer to send PgBouncer information")
+	}
+
 	// call the api
 	_, err := client.Report(api.ReqReport{
 		APIKey: o.apiKey,
 		Server: args[0],
-		Data:   *getReport(o),
+		Data:   *model,
 	})
 	if errh, ok := err.(*api.RestV1ClientError); ok {
 		if errh.Code() == 400 {
 			log.Fatal("invalid API key or account limit reached")
+		}
+		if errh.Code() == 500 {
+			log.Fatal("internal server error")
+		}
+	}
+	if err != nil {
+		log.Fatalf("API request failed: %v", err)
+	}
+}
+
+func cmdReportPgBouncer(o options, args []string) {
+	// check API key
+	checkAPIKey(o)
+
+	// check args
+	if len(args) != 2 {
+		log.Fatal("invalid syntax for report-pgbouncer command, try --help for help.")
+	}
+	if !api.RxServer.MatchString(args[0]) {
+		log.Fatal(`bad server name, must be 1-64 chars A-Z, a-z, 0-9, "-", "_", and ".".`)
+	}
+	if !api.RxServer.MatchString(args[1]) {
+		log.Fatal(`bad PgBouncer name, must be 1-64 chars A-Z, a-z, 0-9, "-", "_", and ".".`)
+	}
+
+	// check the model (must have pgbouncer info)
+	model := getReport(o)
+	if model == nil || model.PgBouncer == nil {
+		log.Fatal("pgmetrics report does not contain PgBouncer information")
+	}
+
+	// call the api
+	_, err := client.ReportPgBouncer(api.ReqReportPgBouncer{
+		APIKey:    o.apiKey,
+		Server:    args[0],
+		PgBouncer: args[1],
+		Data:      *model,
+	})
+	if errh, ok := err.(*api.RestV1ClientError); ok {
+		if errh.Code() == 400 {
+			log.Fatalf("invalid API key or server %q not found", args[0])
 		}
 		if errh.Code() == 500 {
 			log.Fatal("internal server error")
@@ -296,5 +350,7 @@ func main() {
 	switch command {
 	case "report":
 		cmdReport(o, args[1:])
+	case "report-pgbouncer":
+		cmdReportPgBouncer(o, args[1:])
 	}
 }

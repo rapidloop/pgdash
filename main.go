@@ -40,17 +40,18 @@ General options:
       --timeout=SECS       individual operation timeout in seconds (default: 60)
       --retries=COUNT      retry these many times on network or server errors (default: 5)
   -i, --input=FILE         read from this JSON file instead of stdin
-  -a, --api-key=APIKEY     the API key for your pgdash account
+  -a, --api-key=APIKEY     the API key for your pgDash account
+      --base-url=URL       for use with self-hosted version of pgDash, see docs
   -V, --version            output version information, then exit
       --debug              output debugging information
   -h, --help[=options]     show this help, then exit
       --help=variables     list environment variables, then exit
 
 Commands:
-  report SERVERNAME        send report for server SERVERNAME
+  report SERVERNAME        send report for PostgreSQL server SERVERNAME
   report-pgbouncer SERVERNAME PGBOUNCERNAME
                            send PgBouncer report for PgBouncer instance PGBOUNCERNAME
-                               fronting server SERVERNAME
+                               pooling connections for PostgreSQL server SERVERNAME
 
 For more information, visit <https://pgdash.io>.
 `

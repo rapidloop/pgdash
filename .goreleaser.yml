@@ -8,6 +8,7 @@ builds:
       - linux_arm
       - windows_amd64
     flags:
+      - -a
       - -trimpath
     ldflags:
       - -s -w -X main.version={{.Version}} -extldflags "-static"
@@ -22,6 +23,7 @@ archives:
       - README.md
       - LICENSE
     wrap_in_directory: true
+    name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
 release:
   draft: true
   github:

@@ -5,4 +5,4 @@ require (
 	github.com/rapidloop/pgmetrics v1.15.1
 )
 
-go 1.17
+go 1.19

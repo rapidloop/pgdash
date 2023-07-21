@@ -19,7 +19,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -194,9 +194,9 @@ func getReport(o options) *pgmetrics.Model {
 	var data []byte
 	var err error
 	if len(o.input) > 0 {
-		data, err = ioutil.ReadFile(o.input)
+		data, err = os.ReadFile(o.input)
 	} else {
-		data, err = ioutil.ReadAll(os.Stdin)
+		data, err = io.ReadAll(os.Stdin)
 	}
 	if err != nil {
 		log.Fatalf("failed to read input: %v", err)

@@ -24,7 +24,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -167,7 +167,7 @@ func (c *RestV1Client) callOnce(path string, req interface{}, resp interface{}) 
 		return
 	}
 	defer r.Body.Close()
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	c.dlog("read body: err=%v, len=%d", err, len(body))
 	if err != nil {
 		return

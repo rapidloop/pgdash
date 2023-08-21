@@ -52,6 +52,7 @@ Commands:
   report-pgbouncer SERVERNAME PGBOUNCERNAME
                            send PgBouncer report for PgBouncer instance PGBOUNCERNAME
                                pooling connections for PostgreSQL server SERVERNAME
+  report-pgpool PGPOOLNAME send report for Pgpool server PGPOOLNAME
 
 For more information, visit <https://pgdash.io>.
 `
@@ -178,7 +179,7 @@ func (o *options) parse() (args []string) {
 		os.Exit(2)
 	}
 	command := args[0]
-	if command != "report" && command != "report-pgbouncer" {
+	if command != "report" && command != "report-pgbouncer" && command != "report-pgpool" {
 		fmt.Fprintf(os.Stderr, "unknown command '%s'\n", command)
 		printTry()
 		os.Exit(2)
@@ -330,6 +331,46 @@ func cmdReportPgBouncer(o options, args []string) {
 	}
 }
 
+func cmdReportPgpool(o options, args []string) {
+	// check API key
+	checkAPIKey(o)
+
+	// check args
+	if len(args) == 0 {
+		log.Fatal("pgpool name needs to be specified, try --help for help.")
+	}
+	if len(args) != 1 {
+		log.Fatal("invalid syntax for report-pgpool command, try --help for help.")
+	}
+	if !api.RxServer.MatchString(args[0]) {
+		log.Fatal(`bad pgpool name, must be 1-64 chars A-Z, a-z, 0-9, "-", "_", and ".".`)
+	}
+
+	// check the model (must have pgbouncer info)
+	model := getReport(o)
+	if model == nil || model.Pgpool == nil {
+		log.Fatal("pgmetrics report does not contain Pgpool information")
+	}
+
+	// call the api
+	_, err := client.ReportPgpool(api.ReqReportPgpool{
+		APIKey: o.apiKey,
+		Pgpool: args[0],
+		Data:   *model,
+	})
+	if errh, ok := err.(*api.RestV1ClientError); ok {
+		if errh.Code() == 400 {
+			log.Fatalf("invalid API key or server %q not found", args[0])
+		}
+		if errh.Code() == 500 {
+			log.Fatal("internal server error")
+		}
+	}
+	if err != nil {
+		log.Fatalf("API request failed: %v", err)
+	}
+}
+
 func main() {
 	var o options
 	o.defaults()
@@ -353,5 +394,7 @@ func main() {
 		cmdReport(o, args[1:])
 	case "report-pgbouncer":
 		cmdReportPgBouncer(o, args[1:])
+	case "report-pgpool":
+		cmdReportPgpool(o, args[1:])
 	}
 }

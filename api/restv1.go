@@ -62,3 +62,13 @@ type ReqReportPgBouncer struct {
 	PgBouncer string          `json:"pgbouncer"`
 	Data      pgmetrics.Model `json:"data"`
 }
+
+//------------------------------------------------------------------------------
+// RestV1.ReportPgpool
+
+// ReqReportPgpool is the request structure for RestV1.ReportPgpool.
+type ReqReportPgpool struct {
+	APIKey string          `json:"apikey"`
+	Pgpool string          `json:"pgpool"`
+	Data   pgmetrics.Model `json:"data"`
+}

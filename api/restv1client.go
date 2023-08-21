@@ -207,3 +207,9 @@ func (c *RestV1Client) ReportPgBouncer(req ReqReportPgBouncer) (resp RespReport,
 	err = c.call("reportpgbouncer", req, &resp)
 	return
 }
+
+// Reportpgpool calls RestV1.ReportPgpool
+func (c *RestV1Client) ReportPgpool(req ReqReportPgpool) (resp RespReport, err error) {
+	err = c.call("reportpgpool", req, &resp)
+	return
+}

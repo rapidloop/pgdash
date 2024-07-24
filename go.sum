@@ -1,4 +1,4 @@
 github.com/pborman/getopt v1.1.0 h1:eJ3aFZroQqq0bWmraivjQNt6Dmm5M0h2JcDW38/Azb0=
 github.com/pborman/getopt v1.1.0/go.mod h1:FxXoW1Re00sQG/+KIkuSqRL/LwQgSkv7uyac+STFsbk=
-github.com/rapidloop/pgmetrics v1.16.0 h1:GKlgoqdxxGcVUjQS0kjLtbqb6qobMxfDVVZr4V50zLM=
-github.com/rapidloop/pgmetrics v1.16.0/go.mod h1:bQYwG69cXHQSRycc8/gx3ruXePpvDuwnlbblUOraerg=
+github.com/rapidloop/pgmetrics v1.17.0 h1:SR7/plw/igxP4dbUmhp9DF8V1k3wOh5PPl5hAhwtstI=
+github.com/rapidloop/pgmetrics v1.17.0/go.mod h1:vj3B5K5Oht7UblXYFg5cPWw7/qoXFIwLuRpo3DLJE7k=
